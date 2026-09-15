@@ -1,0 +1,5 @@
+# Shell scripts and configs run inside Linux VMs — force LF so they don't break on Windows clones.
+*.sh    text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+Vagrantfile text eol=lf
