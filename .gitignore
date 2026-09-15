@@ -1,0 +1,44 @@
+# --- Secrets / credentials (never commit) ---
+.env
+.env.*
+*.pem
+*.key
+*.pfx
+credentials
+aws-credentials*
+*_secret*
+*apikey*
+*api-key*
+
+# --- Vagrant / VirtualBox ---
+.vagrant/
+*.box
+*.vdi
+*.vmdk
+*.ova
+
+# --- Terraform ---
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+crash.log
+
+# --- Python ---
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+# --- Raw / bulky telemetry (keep curated extracts, not dumps) ---
+attack-logs/**/raw/
+*.evtx
+*.pcap
+
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
