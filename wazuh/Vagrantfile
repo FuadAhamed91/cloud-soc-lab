@@ -1,0 +1,21 @@
+# Wazuh single-node manager (manager + indexer + dashboard) for the detection lab.
+# Reproducible build: `vagrant up` provisions a tuned all-in-one Wazuh install.
+#
+# Host-only network 192.168.56.0/24 lets the endpoint VMs (windows, kali) reach the
+# manager. Endpoints get a host-only adapter on the same vboxnet during enrolment.
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "bento/ubuntu-22.04"
+  config.vm.hostname = "wazuh-manager"
+
+  # Manager reachable at this IP from the endpoints and the host browser.
+  config.vm.network "private_network", ip: "192.168.56.10"
+
+  config.vm.provider "virtualbox" do |vb|
+    vb.name   = "wazuh-manager"
+    vb.memory = 4096   # bump to 5120 if only the Kali endpoint runs alongside
+    vb.cpus   = 2
+  end
+
+  config.vm.provision "shell", path: "provision.sh"
+end
