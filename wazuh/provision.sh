@@ -25,6 +25,14 @@ echo "[*] Tuning indexer JVM heap to 1g for the low-RAM host..."
 sed -i 's/^-Xms.*/-Xms1g/; s/^-Xmx.*/-Xmx1g/' /etc/wazuh-indexer/jvm.options
 systemctl restart wazuh-indexer
 
+# The Vulnerability Detector downloads the full CVE database (~20 GB into queue/vd*),
+# which fills the box's small root disk and stalls the indexer. Not needed for a
+# detection-engineering lab, so disable it.
+echo "[*] Disabling Vulnerability Detector (its CVE feeds fill the small lab disk)..."
+sed -i '/<vulnerability-detection>/,/<\/vulnerability-detection>/ s#<enabled>yes</enabled>#<enabled>no</enabled>#' \
+  /var/ossec/etc/ossec.conf
+systemctl restart wazuh-manager || true
+
 echo "[*] Extracting dashboard credentials..."
 tar -O -xf wazuh-install-files.tar wazuh-install-files/wazuh-passwords.txt \
   > /root/wazuh-passwords.txt 2>/dev/null || true
