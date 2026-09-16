@@ -1,0 +1,15 @@
+<!-- cloud-soc-lab: firewall tampering detection (T1562.004).
+     Authored via the Wazuh dashboard rule editor, deployed as its own rules file. -->
+<group name="local,firewall_modified,">
+
+  <rule id="100020" level="10">
+    <if_sid>5402,5403</if_sid>
+    <match>ufw disable|systemctl stop ufw|systemctl disable ufw|iptables -F|nft flush ruleset</match>
+    <description>Defense Evasion: host firewall disabled or flushed via sudo (T1562.004)</description>
+    <mitre>
+      <id>T1562.004</id>
+    </mitre>
+    <group>firewall_modified,</group>
+  </rule>
+
+</group>

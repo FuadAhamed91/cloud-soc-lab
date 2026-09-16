@@ -1,0 +1,28 @@
+title: Host Firewall Disabled or Flushed via sudo
+id: 9c1e7b52-4a2d-4e18-b3a7-6d90f2c15e83
+status: experimental
+description: >
+  Detects disabling or flushing the host firewall (ufw / iptables / nftables) via sudo -
+  a defense-evasion action. Portable Sigma form of cloud-soc-lab Wazuh rule 100020.
+references:
+  - https://attack.mitre.org/techniques/T1562/004/
+author: FuadAhamed91
+date: 2026-09-16
+logsource:
+  product: linux
+  service: sudo
+detection:
+  selection:
+    command|contains:
+      - 'ufw disable'
+      - 'systemctl stop ufw'
+      - 'systemctl disable ufw'
+      - 'iptables -F'
+      - 'nft flush ruleset'
+  condition: selection
+falsepositives:
+  - Administrator legitimately reconfiguring the firewall
+level: high
+tags:
+  - attack.defense_evasion
+  - attack.t1562.004
