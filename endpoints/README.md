@@ -36,3 +36,20 @@ VBoxManage modifyvm "<vm>" --nic2 hostonly --hostonlyadapter2 <vboxnet>
 
 Sysmon/auditd log collection is pushed centrally from the manager via the `endpoints` group's
 shared `agent.conf`, so the endpoints stay thin and config is version-controlled in one place.
+
+## Networking lessons (learned the hard way)
+
+- **Every endpoint mirrors the manager: NAT as the *primary* adapter (internet) + one host-only
+  adapter (manager link). Nothing else.** A leftover extra adapter (an internal network) made
+  Kali's NAT flaky and its routing unreliable.
+- **After reordering adapters, NetworkManager may re-apply the old adapter's profile.** Kali's new
+  NAT adapter came up with the old static `192.168.20.x` IP and *no default route*. Fix — force
+  the profile onto DHCP:
+  `nmcli connection modify "<profile>" ipv4.method auto ipv4.addresses "" ipv4.gateway "" && nmcli connection up "<profile>"`
+- **VirtualBox NAT drops ICMP to the internet**, so a failing `ping 8.8.8.8` proves nothing.
+  Test with a TCP request: `curl -sS -o /dev/null -w "%{http_code}" https://...`
+- **No guest internet? A VirtualBox shared folder is a reliable file-transfer fallback**
+  (needs Guest Additions): download on the host, then
+  `VBoxManage sharedfolder add <vm> --name labshare --hostpath <dir> --transient` and
+  `mount -t vboxsf labshare /mnt/labshare` inside the guest.
+- Modern Kali ships no `dhclient`; NetworkManager (`nmcli`) owns DHCP.
