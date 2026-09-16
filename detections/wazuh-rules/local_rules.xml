@@ -1,0 +1,24 @@
+<!--
+  cloud-soc-lab custom detection rules.
+  Deployed to the manager at /var/ossec/etc/rules/local_rules.xml.
+-->
+<group name="local,credential_access,">
+
+  <!--
+    T1003.008 - OS Credential Dumping: /etc/passwd and /etc/shadow
+    Default Wazuh only logs the sudo execution (rule 5402, level 3). This child rule
+    elevates it to level 12 when the command touches /etc/shadow (the password-hash
+    file) - turning an ignorable blip into a high-severity credential-access alert.
+  -->
+  <rule id="100010" level="12">
+    <!-- 5402 = successful sudo to root; 5403 = first-time sudo. Both carry the command. -->
+    <if_sid>5402,5403</if_sid>
+    <match>/etc/shadow</match>
+    <description>Credential Access: /etc/shadow accessed via sudo (T1003.008)</description>
+    <mitre>
+      <id>T1003.008</id>
+    </mitre>
+    <group>credential_access,pci_dss_10.2.5,gdpr_IV_35.7.d,</group>
+  </rule>
+
+</group>

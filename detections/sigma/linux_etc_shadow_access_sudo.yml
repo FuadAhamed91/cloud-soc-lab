@@ -1,0 +1,24 @@
+title: Sensitive File Access - /etc/shadow via sudo
+id: 6f2a1c94-8d3e-4b7a-9c21-3e5f0a7b1d42
+status: experimental
+description: >
+  Detects reading or copying of /etc/shadow (the password-hash file) through sudo.
+  This is a common OS credential-dumping precursor - attackers grab the hashes to
+  crack offline. Portable Sigma form of cloud-soc-lab Wazuh rule 100010.
+references:
+  - https://attack.mitre.org/techniques/T1003/008/
+author: FuadAhamed91
+date: 2026-09-16
+logsource:
+  product: linux
+  service: sudo
+detection:
+  selection:
+    command|contains: '/etc/shadow'
+  condition: selection
+falsepositives:
+  - Legitimate administrator or backup process inspecting /etc/shadow
+level: high
+tags:
+  - attack.credential_access
+  - attack.t1003.008
