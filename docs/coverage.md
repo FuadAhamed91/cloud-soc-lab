@@ -1,15 +1,15 @@
 # ATT&CK coverage matrix
 
 Updated as detections land. "Default" = fired with stock Wazuh/Sysmon rules. "Custom" = fired
-after a rule I wrote in this repo.
+after a rule written in this repo.
 
 | Technique | ID | Tactic | Platform | Default | Custom rule | Status |
 |-----------|----|--------|----------|:-------:|-------------|--------|
-| _first technique lands here_ | — | — | — | — | — | — |
+| Create Account: Local Account | T1136.001 | Persistence | Linux | ✅ (5902/5901) | — | Caught by default |
 
 ## Summary
 
-- Techniques tested: 0
-- Caught by default: 0
+- Techniques tested: 1
+- Caught by default: 1
 - Custom rules written: 0
-- Total coverage: 0 / 0
+- Total coverage: 1 / 1
