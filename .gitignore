@@ -42,3 +42,6 @@ attack-logs/**/raw/
 Thumbs.db
 .idea/
 .vscode/
+
+# host->guest transfer share (binaries, not source)
+share/
