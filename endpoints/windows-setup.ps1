@@ -1,33 +1,33 @@
 <#
-    Turns the Windows 10 VM into a monitored endpoint:
-      1. Sysmon (Sysinternals) with the sysmon-modular config
-      2. Wazuh agent enrolled to the manager
+    Windows endpoint setup: Sysmon (sysmon-modular config) + Wazuh agent.
+    Run INSIDE the Windows VM in an ELEVATED PowerShell.
 
-    Run INSIDE the Windows VM, in an elevated PowerShell.
-    Sysmon event collection is configured centrally from the manager (shared agent.conf),
-    so this script only installs the pieces.
+    Installs from the VirtualBox shared folder \\VBOXSVR\labshare, where the host has staged:
+      wazuh-agent-4.9.2-1.msi, Sysmon.zip, sysmonconfig.xml
+    (Fallback if the share is missing / no Guest Additions: download the same files from
+     packages.wazuh.com, download.sysinternals.com, and the sysmon-modular repo.)
 #>
-param(
-    [string]$Manager = "192.168.56.10",
-    [string]$AgentGroup = "endpoints",
-    # Agent version should be <= manager version. Check https://packages.wazuh.com/4.x/windows/
-    [string]$AgentVersion = "4.9.2"
-)
-
 $ErrorActionPreference = "Stop"
+$Manager = "192.168.56.10"
+$src  = "\\VBOXSVR\labshare"
 $work = "$env:TEMP\wazuh-lab"
-New-Item -ItemType Directory -Force -Path $work | Out-Null
+New-Item -ItemType Directory -Force $work | Out-Null
 
-Write-Host "[*] Installing Sysmon with sysmon-modular config..."
-Invoke-WebRequest "https://download.sysinternals.com/files/Sysmon.zip" -OutFile "$work\Sysmon.zip"
-Expand-Archive "$work\Sysmon.zip" -DestinationPath "$work\Sysmon" -Force
-Invoke-WebRequest "https://raw.githubusercontent.com/olafhartong/sysmon-modular/master/sysmonconfig.xml" -OutFile "$work\sysmonconfig.xml"
+if (-not (Test-Path "$src\wazuh-agent-4.9.2-1.msi")) {
+    Write-Error "Shared folder not found at $src (Guest Additions may be missing). Use the download fallback."
+}
+
+Write-Host "[*] Installing Sysmon with the sysmon-modular config..."
+Expand-Archive "$src\Sysmon.zip" -DestinationPath "$work\Sysmon" -Force
+Copy-Item "$src\sysmonconfig.xml" "$work\sysmonconfig.xml" -Force
 & "$work\Sysmon\Sysmon64.exe" -accepteula -i "$work\sysmonconfig.xml"
 
-Write-Host "[*] Installing Wazuh agent (manager $Manager)..."
-$msi = "$work\wazuh-agent-$AgentVersion-1.msi"
-Invoke-WebRequest "https://packages.wazuh.com/4.x/windows/wazuh-agent-$AgentVersion-1.msi" -OutFile $msi
-Start-Process msiexec.exe -Wait -ArgumentList "/i `"$msi`" /q WAZUH_MANAGER=`"$Manager`" WAZUH_AGENT_GROUP=`"$AgentGroup`""
-Start-Service -Name WazuhSvc
+Write-Host "[*] Installing the Wazuh agent (manager $Manager, group endpoints)..."
+Copy-Item "$src\wazuh-agent-4.9.2-1.msi" "$work\wazuh-agent.msi" -Force
+Start-Process msiexec.exe -Wait -ArgumentList "/i `"$work\wazuh-agent.msi`" /q WAZUH_MANAGER=`"$Manager`" WAZUH_AGENT_GROUP=`"endpoints`""
 
-Write-Host "[+] Done. Confirm the agent appears 'active' in the Wazuh dashboard."
+Write-Host "[*] Starting the Wazuh service..."
+Start-Service -Name WazuhSvc -ErrorAction SilentlyContinue
+Start-Sleep 2
+Get-Service WazuhSvc | Format-Table -AutoSize
+Write-Host "[+] Done. The 'windows' agent should appear active in the Wazuh dashboard shortly."
